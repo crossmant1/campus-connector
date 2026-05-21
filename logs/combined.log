@@ -1,0 +1,9 @@
+{"level":"info","message":"Redis connected","timestamp":"2026-03-07T19:27:24.304Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-03-07T19:27:24.316Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-03-07T19:27:24.316Z"}
+{"level":"info","message":"Starting database migrations...","timestamp":"2026-03-07T19:31:32.299Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-03-07T19:31:32.339Z"}
+{"level":"info","message":"Database migrations completed successfully","timestamp":"2026-03-07T19:31:32.502Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-03-07T19:34:01.444Z"}
+{"level":"info","message":"Starting database seeding...","timestamp":"2026-03-07T19:34:01.448Z"}
+{"level":"info","message":"Database seeding completed successfully","timestamp":"2026-03-07T19:34:02.151Z"}
