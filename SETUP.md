@@ -1,346 +1,174 @@
 # CampusConnect Setup Guide
 
-## Quick Start (Recommended)
-
-The fastest way to get CampusConnect running is using the automated setup script:
-
-### Unix/Linux/macOS
+## Quick Start
 
 ```bash
 chmod +x setup.sh
 ./setup.sh
+npm run dev
 ```
 
-### Windows
+The script:
 
-```powershell
-# Run in PowerShell
-.\setup.ps1
-```
+1. Checks Docker, Docker Compose, and Node.js
+2. Creates `.env` from `.env.example` with random JWT secrets
+3. Starts PostgreSQL and Redis
+4. Installs npm dependencies
+5. Runs migrations and seeds sample data
 
-The script will:
-1. Check prerequisites (Docker, Docker Compose)
-2. Create environment files with secure random secrets
-3. Start all services (PostgreSQL, Redis, Backend, Frontend)
-4. Install dependencies
-5. Run database migrations
-6. Seed sample data
+Then open:
 
-After completion, access:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
 
 ## Manual Setup
 
-If you prefer manual setup or the script doesn't work:
-
 ### 1. Prerequisites
 
-Install the following:
 - [Docker](https://docs.docker.com/get-docker/) (20.10+)
 - [Docker Compose](https://docs.docker.com/compose/install/) (2.0+)
-- [Node.js](https://nodejs.org/) (18+)
-- [npm](https://www.npmjs.com/) (9+)
+- [Node.js](https://nodejs.org/) 18+
 
-### 2. Clone Repository
+This repo is a single Node app. There are no `backend/` or `frontend/` directories.
 
-```bash
-git clone <repository-url>
-cd campusconnect
-```
-
-### 3. Environment Configuration
-
-#### Backend Environment
+### 2. Environment
 
 ```bash
-cd backend
 cp .env.example .env
 ```
 
-Edit `backend/.env` and update:
-- `JWT_SECRET` - Generate with: `openssl rand -base64 32`
-- `JWT_REFRESH_SECRET` - Generate with: `openssl rand -base64 32`
-- Email settings (if using email features)
-- Google OAuth credentials (if using Google login)
-
-#### Frontend Environment
+Set `JWT_SECRET` and `JWT_REFRESH_SECRET`:
 
 ```bash
-cd frontend
-cp .env.example .env.local
+openssl rand -base64 32
 ```
 
-The defaults should work for local development.
+Local defaults already point at the Docker Postgres and Redis services:
 
-### 4. Start Services
+```
+DATABASE_URL=postgresql://campusconnect:campusconnect_dev_password@localhost:5432/campusconnect
+REDIS_URL=redis://localhost:6379
+NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_WS_URL=http://localhost:5000
+```
+
+Email (`EMAIL_*`) is optional. Without SMTP, registration can fail after creating the user, and login rejects unverified accounts.
+
+### 3. Databases
 
 ```bash
-# From project root
-docker-compose up -d
+docker compose up -d postgres redis
 ```
 
 This starts:
+
 - PostgreSQL on port 5432
 - Redis on port 6379
-- Backend on port 5000
-- Frontend on port 3000
 
-### 5. Install Dependencies
+Do not run `docker compose up` expecting the web app to start. Compose only runs the databases. The API and Next.js run with `npm run dev`.
+
+### 4. Install, migrate, seed
 
 ```bash
-# Backend
-cd backend
 npm install
-
-# Frontend
-cd ../frontend
-npm install
+npm run migrate
+npm run seed
 ```
 
-### 6. Database Setup
+### 5. Run the app
 
 ```bash
-# From backend directory
-npm run migrate  # Run migrations
-npm run seed     # Seed sample data
+npm run dev
 ```
 
-### 7. Verify Installation
-
-Check that all services are running:
+Or in two terminals:
 
 ```bash
-docker-compose ps
+npm run dev:api
+npm run dev:web
 ```
 
-Test the API:
+Confirm the API:
 
 ```bash
 curl http://localhost:5000/health
 ```
 
-Should return: `{"status":"ok","timestamp":"..."}`
+Should return `{"status":"ok","timestamp":"..."}`.
 
-### 8. Access Application
+## Test credentials
 
-Open your browser:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+After seeding:
 
-## Test Credentials
+- Admin: `admin@campusconnect.com` / `Admin123!`
+- Student: `alice@university.edu` / `Student123!`
 
-After seeding, you can login with:
-
-**Admin Account:**
-- Email: admin@campusconnect.com
-- Password: Admin123!
-
-**Student Account:**
-- Email: alice@university.edu
-- Password: Student123!
-
-## Development Workflow
-
-### Running in Development Mode
+Verify a registered email:
 
 ```bash
-# Backend (with hot reload)
-cd backend
-npm run dev
-
-# Frontend (with hot reload)
-cd frontend
-npm run dev
+docker compose exec postgres psql -U campusconnect -d campusconnect \
+  -c "UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE email = 'you@example.com';"
 ```
 
-### Viewing Logs
+## What the UI covers
+
+Implemented pages: `/login`, `/register`, `/dashboard`. The dashboard loads suggestions, groups, and events from the API. Buttons such as Messages and My Profile are not wired; those features exist on the API (`/api/...`) but do not have pages yet.
+
+## Common issues
+
+### Docker socket missing (WSL)
+
+If `docker` fails with `Cannot connect to the Docker daemon` or `protocol not available`:
 
 ```bash
-# All services
-docker-compose logs -f
-
-# Specific service
-docker-compose logs -f backend
-docker-compose logs -f postgres
+export DOCKER_HOST=unix:///mnt/wsl/docker-desktop-bind-mounts/Ubuntu/docker.sock
 ```
 
-### Stopping Services
+Start Docker Desktop on Windows first, and enable WSL integration for this distro.
+
+### Port already in use
+
+If ports 3000, 5000, 5432, or 6379 are taken, stop the other process or change the mapping in `docker-compose.yml` / `.env`.
+
+### Database connection failed
 
 ```bash
-# Stop all services
-docker-compose down
-
-# Stop and remove volumes (WARNING: deletes data)
-docker-compose down -v
+docker compose ps
+docker compose logs postgres
+docker compose restart postgres
 ```
 
-### Restarting Services
+`migrate` and `seed` load `.env`. If `DATABASE_URL` is missing you will see a Postgres SASL password error.
+
+### Redis connection failed
 
 ```bash
-# Restart all
-docker-compose restart
-
-# Restart specific service
-docker-compose restart backend
+docker compose exec redis redis-cli ping
 ```
 
-## Common Issues
+The API will not listen until Redis connects.
 
-### Port Already in Use
+### TypeScript / Next.js crash on start
 
-If ports 3000, 5000, 5432, or 6379 are already in use:
+Use TypeScript 5 (`typescript` is pinned in `package.json`). TypeScript 7 is not compatible with Next.js 14.
 
-1. Stop the conflicting service, or
-2. Change ports in `docker-compose.yml`
-
-### Database Connection Failed
+## Stopping
 
 ```bash
-# Check PostgreSQL is running
-docker-compose ps postgres
+# Stop API and Next.js with Ctrl+C
 
-# View PostgreSQL logs
-docker-compose logs postgres
+# Stop databases (keeps data)
+docker compose stop
 
-# Restart PostgreSQL
-docker-compose restart postgres
+# Stop and delete data
+docker compose down -v
 ```
 
-### Redis Connection Failed
+## Database reset
 
 ```bash
-# Check Redis is running
-docker-compose ps redis
-
-# Test Redis connection
-docker-compose exec redis redis-cli ping
+docker compose down -v
+docker compose up -d postgres redis
+npm run migrate
+npm run seed
 ```
-
-### Permission Denied (Linux)
-
-```bash
-# Add user to docker group
-sudo usermod -aG docker $USER
-
-# Log out and back in for changes to take effect
-```
-
-### Node Modules Issues
-
-```bash
-# Clear and reinstall
-rm -rf node_modules package-lock.json
-npm install
-```
-
-## Project Structure
-
-```
-campusconnect/
-├── backend/              # Express.js API server
-│   ├── src/
-│   │   ├── controllers/  # Request handlers
-│   │   ├── routes/       # API routes
-│   │   ├── services/     # Business logic
-│   │   ├── middleware/   # Express middleware
-│   │   ├── models/       # Data models
-│   │   ├── config/       # Configuration
-│   │   ├── database/     # Database scripts
-│   │   ├── socket/       # WebSocket handlers
-│   │   └── utils/        # Utilities
-│   ├── package.json
-│   └── Dockerfile
-├── frontend/             # Next.js application
-│   ├── src/
-│   │   ├── app/          # Next.js app directory
-│   │   ├── components/   # React components
-│   │   ├── lib/          # Utilities
-│   │   └── store/        # State management
-│   ├── package.json
-│   └── Dockerfile
-├── docker-compose.yml    # Docker orchestration
-├── .github/              # CI/CD workflows
-└── README.md
-```
-
-## Next Steps
-
-1. **Explore the API**: Check `backend/API.md` for all endpoints
-2. **Understand the Database**: Review `backend/DATABASE.md` for schema
-3. **Customize**: Modify features to fit your needs
-4. **Deploy**: Follow `DEPLOYMENT.md` for production deployment
-
-## Getting Help
-
-- **Documentation**: Check the `/docs` folder
-- **Issues**: Report bugs on GitHub Issues
-- **API Reference**: `backend/API.md`
-- **Database Schema**: `backend/DATABASE.md`
-
-## Development Tips
-
-### Hot Reload
-
-Both frontend and backend support hot reload in development mode. Changes are automatically reflected.
-
-### Database Reset
-
-To reset the database:
-
-```bash
-docker-compose down -v  # Remove volumes
-docker-compose up -d    # Restart services
-cd backend
-npm run migrate         # Re-run migrations
-npm run seed           # Re-seed data
-```
-
-### Adding New Dependencies
-
-```bash
-# Backend
-cd backend
-npm install <package-name>
-
-# Frontend
-cd frontend
-npm install <package-name>
-```
-
-### Running Tests
-
-```bash
-# Backend tests
-cd backend
-npm test
-
-# Frontend tests
-cd frontend
-npm test
-```
-
-## Production Considerations
-
-Before deploying to production:
-
-1. Change all default passwords and secrets
-2. Enable HTTPS/SSL
-3. Configure proper CORS settings
-4. Set up monitoring and logging
-5. Configure automated backups
-6. Review security settings
-7. Set up CI/CD pipeline
-
-See `DEPLOYMENT.md` for detailed production deployment instructions.
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Support
-
-For questions and support:
-- GitHub Issues: <repository-url>/issues
-- Email: support@campusconnect.com
-- Documentation: <docs-url>
