@@ -67,6 +67,7 @@ docker compose exec postgres psql -U campusconnect -d campusconnect \
 | `npm run dev:web` | Next.js only |
 | `npm run migrate` | Apply `src/database/schema.sql` |
 | `npm run seed` | Insert sample users and data |
+| `npm test` | Run the Jest suite |
 
 ## Project structure
 
