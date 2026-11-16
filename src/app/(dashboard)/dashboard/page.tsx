@@ -7,6 +7,7 @@ import api from '@/lib/api';
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const [suggestions, setSuggestions] = useState([]);
+  const [friends, setFriends] = useState<any[]>([]);
   const [groups, setGroups] = useState([]);
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,13 +18,15 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const [suggestionsRes, groupsRes, eventsRes] = await Promise.all([
+      const [suggestionsRes, friendsRes, groupsRes, eventsRes] = await Promise.all([
         api.get('/matching/suggestions?limit=5'),
+        api.get('/connections'),
         api.get('/groups/user/my-groups'),
         api.get('/events?upcoming=true&limit=5'),
       ]);
 
       setSuggestions(suggestionsRes.data.suggestions);
+      setFriends(friendsRes.data.connections);
       setGroups(groupsRes.data.groups);
       setEvents(eventsRes.data.events);
     } catch (error) {
@@ -132,6 +135,43 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* Friends */}
+          <section className="mt-6 bg-white overflow-hidden shadow rounded-lg" aria-labelledby="friends-heading">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 id="friends-heading" className="text-lg font-medium text-gray-900">My Friends</h2>
+                  <p className="text-sm text-gray-500">Students you have connected with</p>
+                </div>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-primary" aria-label={`${friends.length} friends`}>
+                  {friends.length}
+                </span>
+              </div>
+              {friends.length === 0 ? (
+                <p className="text-sm text-gray-500">You don’t have any friends yet. Connect with a suggested student to get started.</p>
+              ) : (
+                <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Friends list">
+                  {friends.map((friend) => (
+                    <li key={friend.id} className="flex items-center gap-3 rounded-md border border-gray-100 p-3">
+                      {friend.profile_picture ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={friend.profile_picture} alt="" className="h-11 w-11 rounded-full object-cover" />
+                      ) : (
+                        <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 font-semibold text-primary">
+                          {(friend.name || '?').trim().charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-gray-900">{friend.name}</p>
+                        <p className="truncate text-sm text-gray-500">{friend.department || friend.university || 'CampusConnect student'}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
 
           {/* Quick Actions */}
           <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
