@@ -11,59 +11,16 @@
 
 ## Local Development Setup
 
-### 1. Clone and Install
+See [SETUP.md](./SETUP.md) for the full local workflow. Short version:
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd campusconnect
-
-# Install backend dependencies
-cd backend
+cp .env.example .env
+docker compose up -d postgres redis
 npm install
-
-# Install frontend dependencies
-cd ../frontend
-npm install
-```
-
-### 2. Environment Configuration
-
-```bash
-# Backend environment
-cp backend/.env.example backend/.env
-# Edit backend/.env with your configuration
-
-# Frontend environment
-cp frontend/.env.example frontend/.env.local
-# Edit frontend/.env.local with your configuration
-```
-
-### 3. Start with Docker Compose
-
-```bash
-# Start all services
-docker-compose up -d
-
-# Check service status
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-```
-
-### 4. Initialize Database
-
-```bash
-# Run migrations
-cd backend
 npm run migrate
-
-# Seed database with sample data
 npm run seed
+npm run dev
 ```
-
-### 5. Access Application
 
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000

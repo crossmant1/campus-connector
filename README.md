@@ -1,95 +1,98 @@
 # CampusConnect
 
-A production-ready student networking platform for universities that connects students across departments to collaborate on projects, form study groups, discover events, and message in real-time.
-
-## Features
-
-- Secure authentication (Email/Password + Google OAuth)
-- Intelligent student matching algorithm
-- Real-time messaging with WebSockets
-- Study group creation and management
-- Event discovery system
-- Skill-based collaboration matching
-- Real-time notifications
-- Admin dashboard with analytics
+A student networking platform for universities. The Express API covers auth, matching, groups, events, messages, and notifications. The Next.js UI currently has login, register, and a dashboard.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React, TailwindCSS, ShadCN UI
+- **Frontend**: Next.js 14, React, TailwindCSS
 - **Backend**: Node.js, Express
-- **Database**: PostgreSQL
-- **Cache/Sessions**: Redis
+- **Database**: PostgreSQL 15
+- **Cache/Sessions**: Redis 7
 - **Real-time**: Socket.io
-- **Deployment**: Docker, Docker Compose
 
 ## Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
-- Docker & Docker Compose
-- PostgreSQL 15+
-- Redis 7+
+- Docker and Docker Compose (for PostgreSQL and Redis)
 
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
+### Setup
 
 ```bash
-# Install backend dependencies
-cd backend
+chmod +x setup.sh
+./setup.sh
+npm run dev
+```
+
+The script copies `.env.example` to `.env`, generates JWT secrets, starts Postgres and Redis, installs dependencies, migrates, and seeds sample users.
+
+Manual equivalent:
+
+```bash
+cp .env.example .env
+# set JWT_SECRET and JWT_REFRESH_SECRET (openssl rand -base64 32)
+
+docker compose up -d postgres redis
 npm install
-
-# Install frontend dependencies
-cd ../frontend
-npm install
-```
-
-3. Set up environment variables:
-
-```bash
-# Backend (.env)
-cp backend/.env.example backend/.env
-
-# Frontend (.env.local)
-cp frontend/.env.example frontend/.env.local
-```
-
-4. Start with Docker:
-
-```bash
-docker-compose up -d
-```
-
-5. Run migrations:
-
-```bash
-cd backend
 npm run migrate
 npm run seed
+npm run dev
 ```
 
-6. Access the application:
+### Access
+
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
-- Admin Dashboard: http://localhost:3000/admin
+- Health: http://localhost:5000/health
 
-## Project Structure
+### Test credentials (after seed)
+
+- Admin: `admin@campusconnect.com` / `Admin123!`
+- Student: `alice@university.edu` / `Student123!`
+
+New registrations stay unverified until SMTP is configured. To verify a user:
+
+```bash
+docker compose exec postgres psql -U campusconnect -d campusconnect \
+  -c "UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE email = 'you@example.com';"
+```
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | API on :5000 and Next.js on :3000 |
+| `npm run dev:api` | Express only |
+| `npm run dev:web` | Next.js only |
+| `npm run migrate` | Apply `src/database/schema.sql` |
+| `npm run seed` | Insert sample users and data |
+| `npm test` | Run the Jest suite |
+
+## Project structure
 
 ```
-campusconnect/
-├── backend/           # Express API server
-├── frontend/          # Next.js application
-├── docker-compose.yml # Docker orchestration
-└── README.md
+campus-connector/
+├── src/
+│   ├── app/           # Next.js pages (login, register, dashboard)
+│   ├── config/        # Postgres and Redis clients
+│   ├── controllers/
+│   ├── database/      # schema, migrate, seed
+│   ├── routes/        # Express API
+│   ├── services/
+│   ├── socket/        # Socket.io
+│   └── server.js      # API entry
+├── docker-compose.yml # PostgreSQL + Redis only
+├── .env.example
+└── setup.sh
 ```
 
 ## Documentation
 
-- [API Documentation](./backend/API.md)
-- [Database Schema](./backend/DATABASE.md)
-- [Deployment Guide](./DEPLOYMENT.md)
+- [Setup](./SETUP.md)
+- [API](./API.md)
+- [Database schema](./DATABASE.md)
+- [Deployment](./DEPLOYMENT.md)
 
 ## License
 
