@@ -7,7 +7,7 @@ import api from '@/lib/api';
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const [suggestions, setSuggestions] = useState([]);
-  const [friends, setFriends] = useState<any[]>([]);
+  const [matchError, setMatchError] = useState<string | null>(null);
   const [groups, setGroups] = useState([]);
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,19 +18,29 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const [suggestionsRes, friendsRes, groupsRes, eventsRes] = await Promise.all([
+      const [suggestionsRes, groupsRes, eventsRes] = await Promise.allSettled([
         api.get('/matching/suggestions?limit=5'),
-        api.get('/connections'),
         api.get('/groups/user/my-groups'),
         api.get('/events?upcoming=true&limit=5'),
       ]);
 
-      setSuggestions(suggestionsRes.data.suggestions);
-      setFriends(friendsRes.data.connections);
-      setGroups(groupsRes.data.groups);
-      setEvents(eventsRes.data.events);
+      if (suggestionsRes.status === 'fulfilled') {
+        setSuggestions(suggestionsRes.value.data.suggestions);
+        setMatchError(null);
+      } else {
+        setSuggestions([]);
+        setMatchError('Could not load match suggestions. Sign in again and retry.');
+      }
+
+      if (groupsRes.status === 'fulfilled') {
+        setGroups(groupsRes.value.data.groups);
+      }
+      if (eventsRes.status === 'fulfilled') {
+        setEvents(eventsRes.value.data.events);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setMatchError('Could not load match suggestions. Sign in again and retry.');
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +78,11 @@ export default function DashboardPage() {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   Suggested Connections
                 </h3>
-                {suggestions.length === 0 ? (
+                {matchError ? (
+                  <p className="text-sm text-red-600" role="alert">
+                    {matchError}
+                  </p>
+                ) : suggestions.length === 0 ? (
                   <p className="text-gray-500 text-sm">No suggestions available</p>
                 ) : (
                   <div className="space-y-3">
