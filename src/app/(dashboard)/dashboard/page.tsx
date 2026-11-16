@@ -7,18 +7,6 @@ import api from '@/lib/api';
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const [suggestions, setSuggestions] = useState([]);
-  const [groups, setGroups] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useAuthStore } from '@/store/authStore';
-import api from '@/lib/api';
-
-export default function DashboardPage() {
-  const { user } = useAuthStore();
-  const [suggestions, setSuggestions] = useState([]);
   const [matchError, setMatchError] = useState<string | null>(null);
   const [groups, setGroups] = useState([]);
   const [events, setEvents] = useState([]);
