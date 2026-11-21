@@ -35,6 +35,19 @@ After seeding:
 
 ## Production Deployment
 
+### Docker Hub image
+
+After CI succeeds for a push to `main`, the `Publish Docker image` workflow
+publishes the API image to Docker Hub as `latest` and the full commit SHA. It
+requires these repository Actions secrets:
+
+- `DOCKERHUB_USERNAME`: Docker Hub account or organization that owns the image
+- `DOCKERHUB_TOKEN`: Docker Hub access token with permission to push images
+
+This Dockerfile runs the Express API (`npm start`). The Next.js frontend is not
+served by this image; deploy it as a separate service or extend the container
+architecture if the frontend should be served from the same deployment.
+
 ### Option 1: AWS Deployment
 
 #### Prerequisites
