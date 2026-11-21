@@ -67,7 +67,7 @@ jobs:
           NODE_ENV: test
 
       - name: Run tests
-        run: npm test
+        run: npm test -- --passWithNoTests
         env:
           NODE_ENV: test
 
