@@ -14,10 +14,8 @@ router.put(
   [
     body('name').optional().trim(),
     body('bio').optional().trim(),
-    body('university').optional().trim(),
     body('department').optional().trim(),
     body('linkedin_url').optional().isURL(),
-    body('github_url').optional().isURL(),
     body('graduation_year').optional().isInt({ min: 2000, max: 2050 }),
     validate,
   ],
@@ -44,7 +42,6 @@ router.post(
     body('courseCode').trim().notEmpty(),
     body('courseName').trim().notEmpty(),
     body('department').trim().notEmpty(),
-    body('university').trim().notEmpty(),
     validate,
   ],
   profileController.addCourse

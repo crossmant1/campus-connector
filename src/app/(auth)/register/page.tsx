@@ -11,7 +11,6 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    university: '',
     password: '',
     confirmPassword: '',
   });
@@ -34,6 +33,12 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!formData.email.includes("udayton.edu")){
+      setError('Not a University of Dayton Email');
+      setIsLoading(false);
+      return;
+    }
+
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters');
       setIsLoading(false);
@@ -41,7 +46,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await register(formData.email, formData.password, formData.name, formData.university);
+      await register(formData.email, formData.password, formData.name);
       setSuccess(true);
       setTimeout(() => router.push('/login'), 3000);
     } catch (err: any) {
@@ -100,15 +105,6 @@ export default function RegisterPage() {
               className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               placeholder="Email address"
               value={formData.email}
-              onChange={handleChange}
-            />
-            <input
-              name="university"
-              type="text"
-              required
-              className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="University"
-              value={formData.university}
               onChange={handleChange}
             />
             <input
