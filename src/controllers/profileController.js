@@ -42,7 +42,7 @@ class ProfileController {
   async updateProfile(req, res, next) {
     try {
       const userId = req.user.id;
-      const { name, bio, university, department, linkedin_url, github_url, graduation_year } = req.body;
+      const { name, bio, department, graduation_year } = req.body;
       
       const result = await pool.query(
         `UPDATE profiles 
@@ -50,12 +50,10 @@ class ProfileController {
              bio = COALESCE($2, bio),
              university = COALESCE($3, university),
              department = COALESCE($4, department),
-             linkedin_url = COALESCE($5, linkedin_url),
-             github_url = COALESCE($6, github_url),
              graduation_year = COALESCE($7, graduation_year)
          WHERE user_id = $8
          RETURNING *`,
-        [name, bio, university, department, linkedin_url, github_url, graduation_year, userId]
+        [name, bio, department, graduation_year, userId]
       );
       
       res.json({ profile: result.rows[0] });
