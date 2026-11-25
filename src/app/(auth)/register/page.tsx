@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    university: 'University of Dayton',
     password: '',
     confirmPassword: '',
   });
@@ -46,7 +47,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await register(formData.email, formData.password, formData.name);
+      await register(formData.email, formData.password, formData.name, formData.university);
       setSuccess(true);
       setTimeout(() => router.push('/login'), 3000);
     } catch (err: any) {
