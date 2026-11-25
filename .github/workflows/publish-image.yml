@@ -57,9 +57,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ${{ steps.image.outputs.name }}:latest
-            ${{ steps.image.outputs.name }}:${{ github.event.workflow_run.head_sha }}
+          tags: ${{ steps.image.outputs.name }}:${{ github.event.workflow_run.head_sha }}
 
       - name: Pull image for smoke test
         run: docker pull "${{ steps.image.outputs.name }}:${{ github.event.workflow_run.head_sha }}"
@@ -83,6 +81,13 @@ jobs:
           done
           docker logs campusconnect-smoke
           exit 1
+
+      - name: Publish latest tag
+        run: |
+          docker tag \
+            "${{ steps.image.outputs.name }}:${{ github.event.workflow_run.head_sha }}" \
+            "${{ steps.image.outputs.name }}:latest"
+          docker push "${{ steps.image.outputs.name }}:latest"
 
       - name: Remove smoke-test container
         if: always()
