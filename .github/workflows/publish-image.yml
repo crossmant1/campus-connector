@@ -22,6 +22,16 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -50,4 +60,31 @@ jobs:
           tags: |
             ${{ steps.image.outputs.name }}:latest
             ${{ steps.image.outputs.name }}:${{ github.event.workflow_run.head_sha }}
+
+      - name: Pull image for smoke test
+        run: docker pull "${{ steps.image.outputs.name }}:${{ github.event.workflow_run.head_sha }}"
+
+      - name: Start API container
+        run: |
+          docker run --detach --name campusconnect-smoke --network host \
+            -e PORT=5000 \
+            -e REDIS_URL=redis://127.0.0.1:6379 \
+            -e JWT_SECRET=smoke_test_secret \
+            -e JWT_REFRESH_SECRET=smoke_test_refresh_secret \
+            "${{ steps.image.outputs.name }}:${{ github.event.workflow_run.head_sha }}"
+
+      - name: Smoke-test API health endpoint
+        run: |
+          for attempt in {1..12}; do
+            response=$(curl --silent --show-error --fail http://127.0.0.1:5000/health) && {
+              echo "$response" | grep -q '"status":"ok"' && exit 0
+            }
+            sleep 5
+          done
+          docker logs campusconnect-smoke
+          exit 1
+
+      - name: Remove smoke-test container
+        if: always()
+        run: docker rm --force campusconnect-smoke || true
 
