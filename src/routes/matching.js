@@ -1,4 +1,5 @@
 const express = require('express');
+const pool = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 const matchingService = require('../services/matchingService');
 
@@ -9,6 +10,17 @@ router.get('/suggestions', authenticateToken, async (req, res, next) => {
   try {
     const userId = req.user.id;
     const limit = parseInt(req.query.limit) || 10;
+
+    const courseCount = await pool.query(
+      'SELECT COUNT(*) AS count FROM user_courses WHERE user_id = $1',
+      [userId]
+    );
+
+    if (parseInt(courseCount.rows[0].count, 10) === 0) {
+      return res.status(400).json({
+        error: 'Your profile is incomplete. Please add your courses and weekly availability to generate matches.',
+      });
+    }
 
     const suggestions = await matchingService.getSuggestedConnections(userId, limit);
 
