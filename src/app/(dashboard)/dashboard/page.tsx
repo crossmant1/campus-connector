@@ -29,7 +29,10 @@ export default function DashboardPage() {
         setMatchError(null);
       } else {
         setSuggestions([]);
-        setMatchError('Could not load match suggestions. Sign in again and retry.');
+        const apiError = suggestionsRes.reason?.response?.data?.error;
+        setMatchError(
+          apiError || 'Could not load match suggestions. Sign in again and retry.'
+        );
       }
 
       if (groupsRes.status === 'fulfilled') {
