@@ -8,6 +8,7 @@ interface User {
   role: string;
   name: string;
   profile_picture?: string;
+  university?: string;
   department?: string;
 }
 
@@ -16,7 +17,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, university: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchCurrentUser: () => Promise<void>;
 }
@@ -42,9 +43,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  register: async (email: string, password: string, name: string) => {
+  register: async (email: string, password: string, name: string, university: string) => {
     try {
-      await api.post('/auth/register', { email, password, name });
+      await api.post('/auth/register', { email, password, name, university });
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Registration failed');
     }

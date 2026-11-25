@@ -16,3 +16,9 @@
 {"level":"info","message":"Redis connected","timestamp":"2026-11-15T19:02:42.895Z"}
 {"level":"info","message":"Server running on port 5000","timestamp":"2026-11-15T19:02:42.925Z"}
 {"level":"info","message":"Environment: development","timestamp":"2026-11-15T19:02:42.926Z"}
+{"level":"info","message":"Redis connected","timestamp":"2026-11-25T23:24:58.574Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-11-25T23:24:58.597Z"}
+{"level":"info","message":"Environment: development","timestamp":"2026-11-25T23:24:58.598Z"}
+{"level":"info","message":"Database connected","timestamp":"2026-11-25T23:25:19.311Z"}
+{"code":"ESOCKET","command":"CONN","level":"error","message":"Error sending verification email:","originalCode":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2026-11-25T23:25:19.825Z"}
+{"level":"error","message":"Error:","method":"POST","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2026-11-25T23:25:19.828Z","url":"/api/auth/register"}
