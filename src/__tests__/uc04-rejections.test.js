@@ -13,7 +13,7 @@ function accessToken(user, expiresIn = '15m') {
 }
 
 async function createStudent(suffix) {
-  const email = `uc04-${suffix}-${Date.now()}@university.edu`;
+  const email = `uc04-${suffix}-${Date.now()}@udayton.edu`;
   const userResult = await pool.query(
     `INSERT INTO users (email, role, is_verified)
      VALUES ($1, 'student', TRUE)
