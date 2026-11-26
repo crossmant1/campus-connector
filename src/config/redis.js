@@ -14,7 +14,9 @@ client.on('connect', () => {
 });
 
 const connectRedis = async () => {
-  await client.connect();
+  if (!client.isOpen) {
+    await client.connect();
+  }
 };
 
 module.exports = { client, connectRedis };
