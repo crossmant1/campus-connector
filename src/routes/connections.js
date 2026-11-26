@@ -26,6 +26,12 @@ router.post('/:userId', authenticateToken, async (req, res, next) => {
       [userId, targetUserId, matchScore]
     );
 
+    if (result.rows.length === 0) {
+      return res.status(409).json({
+        error: 'You have already sent a connection request to this student.',
+      });
+    }
+
     const senderProfile = await pool.query(
       'SELECT name FROM profiles WHERE user_id = $1',
       [userId]
