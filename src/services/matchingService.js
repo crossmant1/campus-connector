@@ -70,10 +70,6 @@ class MatchingService {
          INNER JOIN profiles p ON u.id = p.user_id
          WHERE u.id != $1
          AND u.id NOT IN (
-           SELECT connected_user_id FROM connections 
-           WHERE user_id = $1 AND status IN ('accepted', 'pending')
-         )
-         AND u.id NOT IN (
            SELECT user_id FROM connections 
            WHERE connected_user_id = $1 AND status IN ('accepted', 'pending')
          )
