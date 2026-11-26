@@ -26,11 +26,12 @@ and `.github/workflows/publish-image.yml`.
 ### CI
 
 The `CI` workflow runs on pushes and pull requests. It starts PostgreSQL 15 and
-Redis 7 services, installs the locked Node.js dependencies, builds the Next.js
-application, runs database migrations, runs Jest, and builds the API Docker
-image without pushing it. The test command uses `--passWithNoTests`, so Jest
-succeeds when the repository has no test files. The image build is a merge
-check so a broken Dockerfile fails the pull request.
+Redis 7 services, installs the locked Node.js dependencies, lints the UC-04
+files, builds the Next.js application, runs database migrations, runs the three
+UC-04 rejection tests, and builds the API Docker image without pushing it.
+Jest fails when line coverage drops below 65% for `src/middleware/auth.js`,
+40% for `src/routes/matching.js`, or 40% for `src/routes/connections.js`. The
+image build is a merge check so a broken Dockerfile fails the pull request.
 
 ### Publish to GHCR
 
